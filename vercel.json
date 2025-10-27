@@ -1,14 +1,6 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "devCommand": "npm run dev",
-  "env": {
-    "DATABASE_URL": "@DATABASE_URL",
-    "NEXTAUTH_URL": "@NEXTAUTH_URL",
-    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
-    "NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY": "@NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY",
-    "LIVEBLOCKS_SECRET_KEY": "@LIVEBLOCKS_SECRET_KEY",
-    "UPLOADTHING_SECRET": "@UPLOADTHING_SECRET",
-    "UPLOADTHING_APP_ID": "@UPLOADTHING_APP_ID"
-  }
+  "devCommand": "npm run dev"
 }
+
