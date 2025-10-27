@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import {
   CheckCircle2,
   LayoutDashboard,
@@ -7,60 +8,46 @@ import {
   FileText,
   Trello,
   Palette,
-  ArrowRight,
-  Sparkles,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <LayoutDashboard className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold tracking-tight">
-              Nexus
-            </span>
-          </div>
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link href="/sign-in">
+            <Logo size="lg" />
+            <span className="text-2xl font-bold">Unified Workspace</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/sign-in" prefetch={true}>
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link href="/sign-up">
-              <Button>
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+            <Link href="/sign-up" prefetch={true}>
+              <Button>Get Started</Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {}
-      <section className="flex-1 flex items-center justify-center py-24 sm:py-32 md:py-40">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4 mr-2 text-primary" />
-            <span>All-in-one productivity platform</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6">
+      {/* Hero Section */}
+      <section className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
             One Platform. Five Superpowers.
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Combine project management, task boards, documentation, team chat,
-            and visual collaboration in one seamless workspace. Stop switching,
-            start collaborating.
+            and visual collaboration in one seamless workspace.
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/sign-up">
-              <Button size="lg" className="text-lg px-8 py-6 shadow-lg">
-                Start Your Free Trial
+            <Link href="/sign-up" prefetch={true}>
+              <Button size="lg" className="text-lg px-8">
+                Start Free Trial
               </Button>
             </Link>
-            <Link href="/sign-in">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+            <Link href="/sign-in" prefetch={true}>
+              <Button size="lg" variant="outline" className="text-lg px-8">
                 Sign In
               </Button>
             </Link>
@@ -68,52 +55,52 @@ export default function Home() {
         </div>
       </section>
 
-      {}
-      <section className="py-20 bg-muted/40">
+      {/* Features Section */}
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12">
-            Everything Your Team Needs, All in One Place
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Everything Your Team Needs
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
-              icon={<CheckCircle2 className="h-8 w-8 text-blue-500" />}
+              icon={<CheckCircle2 className="h-10 w-10 text-blue-600" />}
               title="Project Management"
               description="Track issues, plan sprints, and manage projects with Jira-like power and flexibility."
             />
             <FeatureCard
-              icon={<Trello className="h-8 w-8 text-indigo-500" />}
+              icon={<Trello className="h-10 w-10 text-indigo-600" />}
               title="Task Boards"
               description="Organize work with intuitive Kanban boards. Drag, drop, and get things done."
             />
             <FeatureCard
-              icon={<FileText className="h-8 w-8 text-purple-500" />}
+              icon={<FileText className="h-10 w-10 text-purple-600" />}
               title="Documentation"
               description="Create beautiful docs and wikis. Share knowledge across your entire team."
             />
             <FeatureCard
-              icon={<MessageSquare className="h-8 w-8 text-green-500" />}
+              icon={<MessageSquare className="h-10 w-10 text-green-600" />}
               title="Team Chat"
               description="Real-time messaging, channels, and threads. Keep everyone in the loop."
             />
             <FeatureCard
-              icon={<Palette className="h-8 w-8 text-pink-500" />}
+              icon={<Palette className="h-10 w-10 text-pink-600" />}
               title="Whiteboard"
-              description="Brainstorm visually with an infinite canvas and real-time collaboration."
+              description="Brainstorm visually with infinite canvas and real-time collaboration."
             />
             <FeatureCard
-              icon={<LayoutDashboard className="h-8 w-8 text-orange-500" />}
-              title="Unified Platform"
-              description="Everything in one place. No more switching between apps. Boost productivity."
+              icon={<LayoutDashboard className="h-10 w-10 text-orange-600" />}
+              title="Unified Workspace"
+              description="Everything in one place. No more switching between apps."
             />
           </div>
         </div>
       </section>
 
-      {}
-      <section className="py-20">
+      {/* Benefits Section */}
+      <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Why Teams Love Nexus
+            Why Teams Love Unified Workspace
           </h2>
           <div className="max-w-3xl mx-auto space-y-4">
             <BenefitItem text="Save money - one subscription instead of five" />
@@ -125,11 +112,11 @@ export default function Home() {
         </div>
       </section>
 
-      {}
+      {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
           <p>
-            &copy; 2025 Nexus. Built with Next.js, TypeScript, and ❤️
+            &copy; 2025 Unified Workspace. Built with Next.js, TypeScript, and ❤️
           </p>
         </div>
       </footer>

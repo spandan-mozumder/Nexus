@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/logo";
 import {
   Card,
   CardContent,
@@ -81,6 +82,9 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
             Create an account
           </CardTitle>

@@ -51,9 +51,8 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
 
   return (
     <div className="flex flex-col w-64 border-r bg-gradient-to-b from-background to-muted/20">
-      {}
       <div className="p-4 border-b space-y-3">
-        <Link href="/dashboard">
+        <Link href="/dashboard" prefetch={true}>
           <Button
             variant="ghost"
             size="sm"
@@ -74,7 +73,6 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
         </div>
       </div>
 
-      {}
       <ScrollArea className="flex-1">
         <nav className="p-3 space-y-1">
           {navigation.map((item) => {
@@ -82,7 +80,7 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
             const isActive = pathname === href;
 
             return (
-              <Link key={item.name} href={href}>
+              <Link key={item.name} href={href} prefetch={true}>
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
@@ -104,7 +102,7 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
 
           <Separator className="my-4" />
 
-          <Link href={`${baseUrl}/members`}>
+          <Link href={`${baseUrl}/members`} prefetch={true}>
             <Button
               variant={
                 pathname === `${baseUrl}/members` ? "secondary" : "ghost"
@@ -127,7 +125,7 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
             </Button>
           </Link>
 
-          <Link href={`${baseUrl}/settings`}>
+          <Link href={`${baseUrl}/settings`} prefetch={true}>
             <Button
               variant={
                 pathname === `${baseUrl}/settings` ? "secondary" : "ghost"

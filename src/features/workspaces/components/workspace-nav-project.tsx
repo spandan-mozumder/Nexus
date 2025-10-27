@@ -107,7 +107,7 @@ export function WorkspaceNav({
     <div className="fixed left-0 top-0 h-screen w-72 border-r bg-gradient-to-br from-background to-muted/20 flex flex-col overflow-hidden">
       <div className="p-4 border-b space-y-3 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="flex-1">
+          <Link href="/dashboard" className="flex-1" prefetch={true}>
             <Button
               variant="ghost"
               size="sm"
@@ -130,9 +130,8 @@ export function WorkspaceNav({
         </div>
       </div>
 
-      {}
       <div className="p-3 space-y-2 border-b flex-shrink-0">
-        <Link href={baseUrl}>
+        <Link href={baseUrl} prefetch={true}>
           <Button
             variant={pathname === baseUrl ? "secondary" : "ghost"}
             className={cn(
@@ -153,7 +152,6 @@ export function WorkspaceNav({
         </Link>
       </div>
 
-      {}
       <ScrollArea className="flex-1 overflow-hidden">
         <nav className="p-3 space-y-1 flex flex-col">
           <div className="flex items-center justify-between px-2 py-1">
@@ -184,9 +182,8 @@ export function WorkspaceNav({
         </nav>
       </ScrollArea>
 
-      {}
       <div className="p-3 space-y-2 border-t flex-shrink-0">
-        <Link href={`${baseUrl}/messages`}>
+        <Link href={`${baseUrl}/messages`} prefetch={true}>
           <Button
             variant={
               pathname.startsWith(`${baseUrl}/messages`) ? "secondary" : "ghost"
@@ -211,7 +208,6 @@ export function WorkspaceNav({
         </Link>
       </div>
 
-      {}
       <div className="p-4 border-t bg-muted/30 space-y-3 flex-shrink-0">
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
           <Avatar className="h-9 w-9 border-2 border-primary/20">
