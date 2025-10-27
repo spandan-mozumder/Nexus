@@ -17,7 +17,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo size="lg" />
-            <span className="text-2xl font-bold">Unified Workspace</span>
+            <span className="text-2xl font-bold">Nexus</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/sign-in" prefetch={true}>
@@ -89,7 +89,7 @@ export default function Home() {
             />
             <FeatureCard
               icon={<LayoutDashboard className="h-10 w-10 text-orange-600" />}
-              title="Unified Workspace"
+              title="Nexus"
               description="Everything in one place. No more switching between apps."
             />
           </div>
@@ -100,7 +100,7 @@ export default function Home() {
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Why Teams Love Unified Workspace
+            Why Teams Love Nexus
           </h2>
           <div className="max-w-3xl mx-auto space-y-4">
             <BenefitItem text="Save money - one subscription instead of five" />
@@ -116,7 +116,7 @@ export default function Home() {
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
           <p>
-            &copy; 2025 Unified Workspace. Built with Next.js, TypeScript, and ❤️
+            &copy; 2025 Nexus. Built with Next.js, TypeScript, and ❤️
           </p>
         </div>
       </footer>

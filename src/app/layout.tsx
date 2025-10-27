@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Unified Workspace - All-in-One Productivity Platform",
+  title: "Nexus - All-in-One Productivity Platform",
   description:
     "Combine project management, task boards, documentation, team chat, and visual collaboration in one workspace.",
 };
