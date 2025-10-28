@@ -1,16 +1,44 @@
 import { cn } from "@/lib/utils";
 
-export function LoadingSpinner({ className }: { className?: string }) {
+interface LoadingSpinnerProps {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+const sizeMap = {
+  sm: "h-4 w-4",
+  md: "h-6 w-6", 
+  lg: "h-8 w-8",
+};
+
+export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) {
   return (
     <div
       className={cn(
-        "animate-spin rounded-full border-2 border-current border-t-transparent",
-        className,
+        "animate-spin rounded-full border-2 border-muted-foreground/20 border-t-primary",
+        sizeMap[size],
+        className
       )}
-      role="status"
-      aria-label="loading"
-    >
-      <span className="sr-only">Loading...</span>
+    />
+  );
+}
+
+export function LoadingDots({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex space-x-1", className)}>
+      <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+      <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+    </div>
+  );
+}
+
+export function LoadingPulse({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex space-x-1", className)}>
+      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" />
+      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse [animation-delay:0.2s]" />
+      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse [animation-delay:0.4s]" />
     </div>
   );
 }

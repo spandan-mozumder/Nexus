@@ -50,48 +50,54 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
   const baseUrl = `/workspace/${workspace.slug}`;
 
   return (
-    <div className="flex flex-col w-64 border-r bg-gradient-to-b from-background to-muted/20">
-      <div className="p-4 border-b space-y-3">
+    <div className="flex flex-col w-64 border-r bg-gradient-to-b from-background via-background to-muted/10 backdrop-blur-sm">
+      <div className="p-6 border-b space-y-4">
         <Link href="/dashboard" prefetch={true}>
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start hover:bg-accent"
+            className="w-full justify-start hover:bg-accent/50 transition-all duration-200 group"
           >
-            <ChevronLeft className="mr-2 h-4 w-4" />
+            <ChevronLeft className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
             Back to Workspaces
           </Button>
         </Link>
-        <div className="px-2 space-y-1">
-          <div className="flex items-center gap-2">
-            <h2 className="font-bold text-lg truncate">{workspace.name}</h2>
-            <Badge variant="secondary" className="h-5 px-1.5">
-              <Sparkles className="h-3 w-3" />
+        <div className="px-2 space-y-2">
+          <div className="flex items-center gap-3">
+            <h2 className="font-bold text-xl truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              {workspace.name}
+            </h2>
+            <Badge variant="secondary" className="h-6 px-2 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+              <Sparkles className="h-3 w-3 mr-1" />
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          <p className="text-sm text-muted-foreground truncate">{user.email}</p>
         </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <nav className="p-3 space-y-1">
-          {navigation.map((item) => {
+        <nav className="p-4 space-y-2">
+          {navigation.map((item, index) => {
             const href = `${baseUrl}${item.href}`;
             const isActive = pathname === href;
 
             return (
-              <Link key={item.name} href={href} prefetch={true}>
+              <Link key={item.name} href={href} prefetch={true} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start font-medium transition-all",
-                    isActive && "bg-secondary shadow-sm border border-border",
+                    "w-full justify-start font-medium transition-all duration-300 group",
+                    isActive 
+                      ? "bg-gradient-to-r from-primary/10 to-secondary/10 shadow-md border border-primary/20 text-primary" 
+                      : "hover:bg-accent/50 hover:text-foreground",
                   )}
                 >
                   <item.icon
                     className={cn(
-                      "mr-3 h-4 w-4",
-                      isActive ? "text-primary" : "text-muted-foreground",
+                      "mr-3 h-5 w-5 transition-all duration-300",
+                      isActive 
+                        ? "text-primary" 
+                        : "text-muted-foreground group-hover:text-primary group-hover:scale-110",
                     )}
                   />
                   {item.name}
@@ -100,48 +106,50 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
             );
           })}
 
-          <Separator className="my-4" />
+          <Separator className="my-6 bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          <Link href={`${baseUrl}/members`} prefetch={true}>
+          <Link href={`${baseUrl}/members`} prefetch={true} className="animate-fade-in-up" style={{ animationDelay: '300ms' }}>
             <Button
               variant={
                 pathname === `${baseUrl}/members` ? "secondary" : "ghost"
               }
               className={cn(
-                "w-full justify-start font-medium transition-all",
-                pathname === `${baseUrl}/members` &&
-                  "bg-secondary shadow-sm border border-border",
+                "w-full justify-start font-medium transition-all duration-300 group",
+                pathname === `${baseUrl}/members`
+                  ? "bg-gradient-to-r from-primary/10 to-secondary/10 shadow-md border border-primary/20 text-primary"
+                  : "hover:bg-accent/50 hover:text-foreground",
               )}
             >
               <Users
                 className={cn(
-                  "mr-3 h-4 w-4",
+                  "mr-3 h-5 w-5 transition-all duration-300",
                   pathname === `${baseUrl}/members`
                     ? "text-primary"
-                    : "text-muted-foreground",
+                    : "text-muted-foreground group-hover:text-primary group-hover:scale-110",
                 )}
               />
               Members
             </Button>
           </Link>
 
-          <Link href={`${baseUrl}/settings`} prefetch={true}>
+          <Link href={`${baseUrl}/settings`} prefetch={true} className="animate-fade-in-up" style={{ animationDelay: '350ms' }}>
             <Button
               variant={
                 pathname === `${baseUrl}/settings` ? "secondary" : "ghost"
               }
               className={cn(
-                "w-full justify-start font-medium transition-all",
-                pathname === `${baseUrl}/settings` &&
-                  "bg-secondary shadow-sm border border-border",
+                "w-full justify-start font-medium transition-all duration-300 group",
+                pathname === `${baseUrl}/settings`
+                  ? "bg-gradient-to-r from-primary/10 to-secondary/10 shadow-md border border-primary/20 text-primary"
+                  : "hover:bg-accent/50 hover:text-foreground",
               )}
             >
               <Settings
                 className={cn(
-                  "mr-3 h-4 w-4",
+                  "mr-3 h-5 w-5 transition-all duration-300",
                   pathname === `${baseUrl}/settings`
                     ? "text-primary"
-                    : "text-muted-foreground",
+                    : "text-muted-foreground group-hover:text-primary group-hover:scale-110",
                 )}
               />
               Settings
@@ -150,19 +158,18 @@ export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {
         </nav>
       </ScrollArea>
 
-      {}
-      <div className="p-4 border-t bg-muted/30">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
-          <Avatar className="h-9 w-9 border-2 border-primary/20">
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+      <div className="p-4 border-t bg-gradient-to-r from-muted/20 to-muted/10">
+        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-all duration-300 cursor-pointer group animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+          <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors duration-300">
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold group-hover:scale-110 transition-transform duration-300">
               {getInitials(user.name || user.email || "U")}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">
+            <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors duration-300">
               {user.name || "User"}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground truncate group-hover:text-foreground/80 transition-colors duration-300">
               {user.email}
             </p>
           </div>
