@@ -16,7 +16,6 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-  ListTodo,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -55,8 +54,7 @@ export function ProjectSection({
     boards: any[];
     documents: any[];
     canvases: any[];
-    issues: any[];
-  }>({ boards: [], documents: [], canvases: [], issues: [] });
+  }>({ boards: [], documents: [], canvases: [] });
   const [loading, setLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean;
@@ -71,8 +69,7 @@ export function ProjectSection({
       isExpanded &&
       items.boards.length === 0 &&
       items.documents.length === 0 &&
-      items.canvases.length === 0 &&
-      items.issues.length === 0
+      items.canvases.length === 0
     ) {
       loadItems();
     }
@@ -384,19 +381,6 @@ export function ProjectSection({
                     )}
                   </>
                 )}
-              </div>
-
-              {}
-              <div className="flex items-center group/section">
-                <Link
-                  href={`${baseUrl}/projects/${project.id}/issues`}
-                  className="flex-1"
-                >
-                  <div className="flex items-center gap-2 px-2 py-1 hover:bg-accent rounded-md transition-colors cursor-pointer">
-                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium">Issues</span>
-                  </div>
-                </Link>
               </div>
             </>
           )}

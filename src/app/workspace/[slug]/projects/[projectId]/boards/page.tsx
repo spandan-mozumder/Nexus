@@ -33,7 +33,7 @@ async function ProjectBoardsList({
           <LayoutDashboard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">No boards yet</h3>
           <p className="text-muted-foreground mb-4">
-            Create your first board to start organizing tasks
+            Create your first board to start organizing and tracking issues with Kanban
           </p>
         </CardContent>
       </Card>
@@ -63,7 +63,7 @@ async function ProjectBoardsList({
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <LayoutDashboard className="h-3 w-3" />
-                  <span>{board._count.lists} lists</span>
+                  <span>{board._count.issues} issues</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
@@ -111,10 +111,10 @@ export default async function ProjectBoardsPage({
             {project.name} - Boards
           </h2>
           <p className="text-muted-foreground">
-            Manage your project boards and tasks
+            Organize and track issues with Kanban boards
           </p>
         </div>
-        <Link href={`/workspace/${slug}/boards/new?projectId=${projectId}`}>
+        <Link href={`/workspace/${slug}/projects/${projectId}/boards/new`}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             New Board

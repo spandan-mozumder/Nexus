@@ -122,6 +122,7 @@ export function CanvasList() {
 
         <CreateCanvasModal
           workspaceId={workspaceId}
+          workspaceSlug={workspaceSlug}
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
         />
@@ -223,6 +224,7 @@ export function CanvasList() {
 
       <CreateCanvasModal
         workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
       />

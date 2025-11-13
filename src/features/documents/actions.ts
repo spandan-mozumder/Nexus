@@ -112,11 +112,15 @@ export async function createDocument(
         action: "CREATED",
         entityType: "DOCUMENT",
         entityId: document.id,
-        metadata: { message: `Created document "${document.title}"` },
+        metadata: { message: `Created document "${document.title || "Untitled"}"` },
       },
     });
 
-    revalidatePath(`/workspace/${validatedData.workspaceId}/documents`);
+    if (projectId) {
+      revalidatePath(`/workspace/${validatedData.workspaceId}/projects/${projectId}/documents`);
+    } else {
+      revalidatePath(`/workspace/${validatedData.workspaceId}/projects`);
+    }
 
     return { success: true, data: document };
   } catch (error) {
@@ -186,10 +190,12 @@ export async function updateDocument(
       });
     }
 
-    revalidatePath(`/workspace/${existingDoc.workspaceId}/documents`);
-    revalidatePath(
-      `/workspace/${existingDoc.workspaceId}/documents/${validatedData.id}`,
-    );
+    if (existingDoc.projectId) {
+      revalidatePath(`/workspace/${existingDoc.workspaceId}/projects/${existingDoc.projectId}/documents`);
+      revalidatePath(`/workspace/${existingDoc.workspaceId}/projects/${existingDoc.projectId}/documents/${validatedData.id}`);
+    } else {
+      revalidatePath(`/workspace/${existingDoc.workspaceId}/projects`);
+    }
 
     return { success: true, data: updatedDocument };
   } catch (error) {
@@ -257,7 +263,11 @@ export async function deleteDocument(data: z.infer<typeof documentIdSchema>) {
       },
     });
 
-    revalidatePath(`/workspace/${document.workspaceId}/documents`);
+    if (document.projectId) {
+      revalidatePath(`/workspace/${document.workspaceId}/projects/${document.projectId}/documents`);
+    } else {
+      revalidatePath(`/workspace/${document.workspaceId}/projects`);
+    }
 
     return { success: true };
   } catch (error) {
@@ -320,7 +330,11 @@ export async function restoreDocument(data: z.infer<typeof documentIdSchema>) {
       },
     });
 
-    revalidatePath(`/workspace/${document.workspaceId}/documents`);
+    if (document.projectId) {
+      revalidatePath(`/workspace/${document.workspaceId}/projects/${document.projectId}/documents`);
+    } else {
+      revalidatePath(`/workspace/${document.workspaceId}/projects`);
+    }
 
     return { success: true };
   } catch (error) {

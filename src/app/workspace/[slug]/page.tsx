@@ -49,7 +49,7 @@ export default async function WorkspaceOverviewPage({
                 <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   {workspace.name}
                 </h1>
-                <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+                <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
                   <Sparkles className="h-4 w-4 mr-2" />
                   Active
                 </Badge>
@@ -136,40 +136,22 @@ export default async function WorkspaceOverviewPage({
               <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
                 Quick Access
               </h2>
-              <p className="text-muted-foreground">Jump into your favorite tools and start collaborating</p>
+              <p className="text-muted-foreground">Jump into your workspace features and start collaborating</p>
             </div>
             <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-              5 Tools Available
+              2 Features
             </Badge>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             <FeatureCard
               title="Project Management"
-              description="Track issues, plan sprints, and manage your projects with agile workflows"
+              description="Track issues, boards, documents, and whiteboards. Manage your projects with agile workflows"
               icon={<FolderKanban className="h-12 w-12" />}
               href={`/workspace/${slug}/projects`}
               gradient="from-primary/20 to-primary/5"
-              badgeText="Jira-like"
+              badgeText="All-in-one"
               delay="0"
-            />
-            <FeatureCard
-              title="Task Boards"
-              description="Organize work with Kanban boards, lists, and drag-and-drop task management"
-              icon={<CheckSquare className="h-12 w-12" />}
-              href={`/workspace/${slug}/boards`}
-              gradient="from-secondary/20 to-secondary/5"
-              badgeText="Trello-like"
-              delay="100"
-            />
-            <FeatureCard
-              title="Documents"
-              description="Create and share rich documentation, wikis, and notes with your team"
-              icon={<FileText className="h-12 w-12" />}
-              href={`/workspace/${slug}/documents`}
-              gradient="from-accent/20 to-accent/5"
-              badgeText="Notion-like"
-              delay="200"
             />
             <FeatureCard
               title="Team Chat"
@@ -178,16 +160,7 @@ export default async function WorkspaceOverviewPage({
               href={`/workspace/${slug}/messages`}
               gradient="from-muted to-muted/30"
               badgeText="Slack-like"
-              delay="300"
-            />
-            <FeatureCard
-              title="Whiteboard"
-              description="Visual collaboration canvas for brainstorming, diagrams, and creative work"
-              icon={<Palette className="h-12 w-12" />}
-              href={`/workspace/${slug}/whiteboard`}
-              gradient="from-primary/10 to-secondary/10"
-              badgeText="Miro-like"
-              delay="400"
+              delay="100"
             />
           </div>
         </div>
@@ -227,7 +200,7 @@ function FeatureCard({
               <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-300">{title}</CardTitle>
               <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
             </div>
-            <Badge variant="secondary" className="text-xs font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+            <Badge variant="outline" className="text-xs font-medium bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
               {badgeText}
             </Badge>
           </div>

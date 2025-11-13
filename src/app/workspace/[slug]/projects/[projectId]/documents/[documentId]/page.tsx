@@ -1,5 +1,7 @@
 import { protectRoute } from "@/lib/auth-guard";
 import { getDocumentById } from "@/features/documents/actions";
+import { DocumentEditorClient } from "@/features/documents/components/document-editor-client";
+import { redirect } from "next/navigation";
 
 interface DocumentPageProps {
   params: Promise<{
@@ -25,14 +27,25 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
 
   const document = result.data;
 
+  // Ensure the document belongs to this project
+  if (document.projectId !== projectId) {
+    redirect(`/workspace/${slug}/projects/${projectId}/documents`);
+  }
+
   return (
-    <div className="flex-1 h-full">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold">
-          {document.title || "Untitled Document"}
-        </h1>
-      </div>
-      {}
+    <div className="flex-1 h-full overflow-hidden">
+      <DocumentEditorClient
+        document={{
+          id: document.id,
+          title: document.title,
+          content: document.content,
+          icon: document.icon,
+          coverImage: document.coverImage,
+          isPublished: document.isPublished,
+          workspaceId: document.workspaceId,
+          projectId: document.projectId,
+        }}
+      />
     </div>
   );
 }

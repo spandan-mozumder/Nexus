@@ -116,6 +116,7 @@ export function WhiteboardsList({
 
         <CreateCanvasModal
           workspaceId={workspaceId}
+          workspaceSlug={workspaceSlug}
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
         />
@@ -155,13 +156,11 @@ export function WhiteboardsList({
           >
             <Card className="hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer h-full border-2 hover:border-primary group">
               <CardContent className="p-0">
-                {}
                 <div className="h-40 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 flex items-center justify-center border-b-2 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
                   <Palette className="h-16 w-16 text-primary/40 relative z-10" />
                 </div>
 
-                {}
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <CardTitle className="text-lg font-bold line-clamp-1">
@@ -198,7 +197,6 @@ export function WhiteboardsList({
           </Link>
         ))}
 
-        {}
         <Card
           className="h-full min-h-[280px] cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 border-dashed border-2 hover:border-primary group bg-gradient-to-br from-background to-muted/20"
           onClick={() => setCreateModalOpen(true)}
@@ -219,6 +217,7 @@ export function WhiteboardsList({
 
       <CreateCanvasModal
         workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
       />

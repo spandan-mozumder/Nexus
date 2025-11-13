@@ -1,30 +1,19 @@
-// Nexus Platform - Complete Prisma Schema
-// Integrates: Jira + Miro + Notion + Slack + Trello
-
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// ============================================
-// CORE - Authentication & Users
-// ============================================
-
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String    // Hashed with bcrypt
+  password      String
   avatar        String?
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  // Relations
   accounts              Account[]
   sessions              Session[]
   ownedWorkspaces       Workspace[]         @relation("WorkspaceOwner")
@@ -46,12 +35,9 @@ model User {
   activityLogs          ActivityLog[]
   notifications         Notification[]
   boardFavorites        BoardFavorite[]
-
   @@index([email])
   @@map("users")
 }
-
-// NextAuth models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -65,38 +51,27 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
   @@index([userId])
   @@map("accounts")
 }
-
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId])
   @@map("sessions")
 }
-
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
-
-// ============================================
-// CORE - Workspaces & Members
-// ============================================
-
 model Workspace {
   id          String   @id @default(cuid())
   name        String
@@ -107,10 +82,7 @@ model Workspace {
   ownerId     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   owner             User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  // Relations
   members           WorkspaceMember[]
   projects          Project[]
   issues            Issue[]
@@ -123,94 +95,75 @@ model Workspace {
   reactions         Reaction[]
   attachments       Attachment[]
   activityLogs      ActivityLog[]
-
   @@index([ownerId])
   @@index([slug])
   @@map("workspaces")
 }
-
 enum WorkspaceRole {
   OWNER
   ADMIN
   MEMBER
   GUEST
 }
-
 model WorkspaceMember {
   id          String        @id @default(cuid())
   workspaceId String
   userId      String
   role        WorkspaceRole @default(MEMBER)
   joinedAt    DateTime      @default(now())
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([workspaceId, userId])
   @@index([workspaceId])
   @@index([userId])
   @@map("workspace_members")
 }
-
-// ============================================
-// JIRA - Project Management
-// ============================================
-
 model Project {
   id          String   @id @default(cuid())
   workspaceId String
   name        String
-  key         String   // e.g., "PROJ" for issue keys like PROJ-123
+  key         String   
   description String?
   imageUrl    String?
   color       String?
-  isPrivate   Boolean  @default(false) // Private projects are only visible to members
-  isDefault   Boolean  @default(false) // Each workspace has one default project
+  isPrivate   Boolean  @default(false)
+  isDefault   Boolean  @default(false)
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy User      @relation("ProjectCreator", fields: [createdById], references: [id])
-  
   issues     Issue[]
   sprints    Sprint[]
-  boards     Board[]      // Link to Trello-style boards
-  documents  Document[]   // Link to Notion-style documents
-  canvases   Canvas[]     // Link to Miro-style whiteboards
-  channels   Channel[]     // Project-specific message channels
-  members    ProjectMember[] // Project access control
-
+  boards     Board[]      
+  documents  Document[]   
+  canvases   Canvas[]     
+  channels   Channel[]     
+  members    ProjectMember[] 
   @@unique([workspaceId, key])
   @@index([workspaceId])
   @@index([createdById])
   @@index([isDefault])
   @@map("projects")
 }
-
-// Project member access control
 model ProjectMember {
   id        String   @id @default(cuid())
   projectId String
   userId    String
   role      ProjectRole @default(MEMBER)
   joinedAt  DateTime @default(now())
-
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
   @@map("project_members")
 }
-
 enum ProjectRole {
   ADMIN
   MEMBER
   VIEWER
 }
-
 enum IssueStatus {
   BACKLOG
   TODO
@@ -218,14 +171,12 @@ enum IssueStatus {
   IN_REVIEW
   DONE
 }
-
 enum IssuePriority {
   LOW
   MEDIUM
   HIGH
   URGENT
 }
-
 enum IssueType {
   TASK
   BUG
@@ -233,11 +184,11 @@ enum IssueType {
   EPIC
   STORY
 }
-
 model Issue {
   id          String        @id @default(cuid())
   workspaceId String
   projectId   String
+  boardId     String?       
   title       String
   description String?       @db.Text
   status      IssueStatus   @default(BACKLOG)
@@ -247,35 +198,32 @@ model Issue {
   reporterId  String
   sprintId    String?
   dueDate     DateTime?
-  position    Int           // For ordering
-  labels      String[]      // Array of labels
+  position    Int           
+  labels      String[]      
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  board     Board?    @relation(fields: [boardId], references: [id], onDelete: Cascade)
   assignee  User?     @relation("IssueAssignee", fields: [assigneeId], references: [id])
   reporter  User      @relation("IssueReporter", fields: [reporterId], references: [id])
   sprint    Sprint?   @relation(fields: [sprintId], references: [id])
-  
   comments  Comment[]
   attachments Attachment[]
-
   @@index([workspaceId])
   @@index([projectId])
+  @@index([boardId])
   @@index([assigneeId])
   @@index([reporterId])
   @@index([sprintId])
   @@index([status])
   @@map("issues")
 }
-
 enum SprintStatus {
   PLANNING
   ACTIVE
   COMPLETED
 }
-
 model Sprint {
   id        String       @id @default(cuid())
   projectId String
@@ -286,129 +234,100 @@ model Sprint {
   status    SprintStatus @default(PLANNING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issues  Issue[]
-
   @@index([projectId])
   @@index([status])
   @@map("sprints")
 }
-
-// ============================================
-// TRELLO - Task Boards
-// ============================================
-
 model Board {
   id              String   @id @default(cuid())
   workspaceId     String
-  projectId       String   // Required - belongs to a project
+  projectId       String   
   title           String
   description     String?
   backgroundImage String?
   backgroundColor String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
   lists     List[]
+  issues    Issue[]   
   favorites BoardFavorite[]
-
   @@index([workspaceId])
   @@index([projectId])
   @@map("boards")
 }
-
 model BoardFavorite {
   id      String @id @default(cuid())
   boardId String
   userId  String
-
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([boardId, userId])
   @@index([userId])
   @@map("board_favorites")
 }
-
 model List {
   id        String   @id @default(cuid())
   boardId   String
   title     String
-  position  Int      // For ordering
+  position  Int      
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   cards Card[]
-
   @@index([boardId])
   @@index([position])
   @@map("lists")
 }
-
 model Card {
   id          String    @id @default(cuid())
   listId      String
   title       String
   description String?   @db.Text
-  position    Int       // For ordering
+  position    Int       
   dueDate     DateTime?
-  labels      String[]  // Array of labels
+  labels      String[]  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
   list        List           @relation(fields: [listId], references: [id], onDelete: Cascade)
   assignees   CardAssignee[]
   comments    Comment[]
   attachments Attachment[]
-
   @@index([listId])
   @@index([position])
   @@map("cards")
 }
-
 model CardAssignee {
   id     String @id @default(cuid())
   cardId String
   userId String
-
   card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([cardId, userId])
   @@index([userId])
   @@map("card_assignees")
 }
-
-// ============================================
-// MIRO - Whiteboard & Canvas
-// ============================================
-
 model Canvas {
   id           String   @id @default(cuid())
   workspaceId  String
-  projectId    String   // Required - belongs to a project
+  projectId    String   
   title        String
   thumbnailUrl String?
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdBy User           @relation(fields: [createdById], references: [id])
   layers    CanvasLayer[]
-  
   @@index([workspaceId])
   @@index([projectId])
   @@index([createdById])
   @@map("canvases")
 }
-
 enum LayerType {
   RECTANGLE
   ELLIPSE
@@ -416,7 +335,6 @@ enum LayerType {
   TEXT
   NOTE
 }
-
 model CanvasLayer {
   id       String    @id @default(cuid())
   canvasId String
@@ -426,43 +344,33 @@ model CanvasLayer {
   width    Float
   height   Float
   zIndex   Int
-  data     Json      // Layer-specific data (color, text, points, etc.)
-
+  data     Json      
   canvas Canvas @relation(fields: [canvasId], references: [id], onDelete: Cascade)
-
   @@index([canvasId])
   @@index([zIndex])
   @@map("canvas_layers")
 }
-
-// ============================================
-// NOTION - Documentation
-// ============================================
-
 model Document {
   id          String   @id @default(cuid())
   workspaceId String
-  projectId   String   // Required - belongs to a project
+  projectId   String   
   title       String?
-  icon        String?  // Emoji
+  icon        String?  
   coverImage  String?
-  content     Json?    // BlockNote or rich text JSON
-  parentId    String?  // For nested hierarchy
+  content     Json?    
+  parentId    String?  
   isPublished Boolean  @default(false)
   isArchived  Boolean  @default(false)
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   workspace    Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdBy    User       @relation(fields: [createdById], references: [id])
   parent       Document?  @relation("DocumentHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children     Document[] @relation("DocumentHierarchy")
-  
   comments     Comment[]
   attachments  Attachment[]
-
   @@index([workspaceId])
   @@index([projectId])
   @@index([createdById])
@@ -471,88 +379,71 @@ model Document {
   @@index([isArchived])
   @@map("documents")
 }
-
-// ============================================
-// SLACK - Team Communication
-// ============================================
-
 model Channel {
   id          String   @id @default(cuid())
   workspaceId String
-  projectId   String?  // Optional - channels can be project-specific
+  projectId   String?  
   name        String
   description String?
   isPrivate   Boolean  @default(false)
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   members   ChannelMember[]
   messages  Message[]
-
   @@unique([workspaceId, name])
   @@index([workspaceId])
   @@index([projectId])
   @@map("channels")
 }
-
 model ChannelMember {
   id        String   @id @default(cuid())
   channelId String
   userId    String
   joinedAt  DateTime @default(now())
-
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([channelId, userId])
   @@index([userId])
   @@map("channel_members")
 }
-
 model Conversation {
   id            String   @id @default(cuid())
   workspaceId   String
   memberOneId   String
   memberTwoId   String
   createdAt     DateTime @default(now())
-
   workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   memberOne  User      @relation("ConversationInitiator", fields: [memberOneId], references: [id], onDelete: Cascade)
   memberTwo  User      @relation("ConversationReceiver", fields: [memberTwoId], references: [id], onDelete: Cascade)
   messages   Message[]
-
   @@unique([workspaceId, memberOneId, memberTwoId])
   @@index([workspaceId])
   @@index([memberOneId])
   @@index([memberTwoId])
   @@map("conversations")
 }
-
 model Message {
   id             String   @id @default(cuid())
   workspaceId    String
   channelId      String?
   conversationId String?
-  parentId       String?  // For threading
+  parentId       String?  
   body           String   @db.Text
   senderId       String
   isEdited       Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
   workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   channel      Channel?      @relation(fields: [channelId], references: [id], onDelete: Cascade)
   conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
   parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies      Message[]     @relation("MessageThread")
-  
   reactions    Reaction[]
   attachments  Attachment[]
-
   @@index([workspaceId])
   @@index([channelId])
   @@index([conversationId])
@@ -561,7 +452,6 @@ model Message {
   @@index([createdAt])
   @@map("messages")
 }
-
 model Reaction {
   id          String   @id @default(cuid())
   workspaceId String
@@ -569,22 +459,15 @@ model Reaction {
   userId      String
   emoji       String
   createdAt   DateTime @default(now())
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([messageId, userId, emoji])
   @@index([workspaceId])
   @@index([messageId])
   @@index([userId])
   @@map("reactions")
 }
-
-// ============================================
-// SHARED - Common Models
-// ============================================
-
 model Attachment {
   id           String   @id @default(cuid())
   workspaceId  String
@@ -593,22 +476,17 @@ model Attachment {
   fileSize     Int
   mimeType     String
   uploadedById String
-  
-  // Polymorphic relations
   issueId      String?
   cardId       String?
   documentId   String?
   messageId    String?
-  
   createdAt    DateTime @default(now())
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   uploadedBy User     @relation(fields: [uploadedById], references: [id])
   issue      Issue?   @relation(fields: [issueId], references: [id], onDelete: Cascade)
   card       Card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
   document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
   message    Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
   @@index([workspaceId])
   @@index([uploadedById])
   @@index([issueId])
@@ -617,52 +495,42 @@ model Attachment {
   @@index([messageId])
   @@map("attachments")
 }
-
 model Comment {
   id         String   @id @default(cuid())
   content    String   @db.Text
   authorId   String
-  
-  // Polymorphic relations - only one will be set
   issueId    String?
   cardId     String?
   documentId String?
-  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
   issue      Issue?    @relation(fields: [issueId], references: [id], onDelete: Cascade)
   card       Card?     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
   author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
   @@index([issueId])
   @@index([cardId])
   @@index([documentId])
   @@index([authorId])
   @@map("comments")
 }
-
 model ActivityLog {
   id          String   @id @default(cuid())
   workspaceId String
   userId      String
-  action      String   // e.g., "CREATED", "UPDATED", "DELETED"
-  entityType  String   // e.g., "ISSUE", "CARD", "MESSAGE"
+  action      String   
+  entityType  String   
   entityId    String
-  metadata    Json?    // Additional context
+  metadata    Json?    
   createdAt   DateTime @default(now())
-
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([workspaceId])
   @@index([userId])
   @@index([entityType])
   @@index([createdAt])
   @@map("activity_logs")
 }
-
 model Notification {
   id        String   @id @default(cuid())
   userId    String
@@ -672,9 +540,7 @@ model Notification {
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])

@@ -22,7 +22,6 @@ import {
   ListTodo,
   Users,
   Calendar,
-  Settings,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
@@ -60,6 +59,7 @@ export default async function ProjectOverviewPage({
       icon: CheckSquare,
       href: `/workspace/${slug}/projects/${projectId}/boards`,
       color: "text-blue-500",
+      description: "Task boards with issues",
     },
     {
       title: "Documents",
@@ -67,6 +67,7 @@ export default async function ProjectOverviewPage({
       icon: FileText,
       href: `/workspace/${slug}/projects/${projectId}/documents`,
       color: "text-green-500",
+      description: "Project documentation",
     },
     {
       title: "Whiteboards",
@@ -74,13 +75,7 @@ export default async function ProjectOverviewPage({
       icon: Palette,
       href: `/workspace/${slug}/projects/${projectId}/whiteboards`,
       color: "text-purple-500",
-    },
-    {
-      title: "Issues",
-      count: items.issues.length,
-      icon: ListTodo,
-      href: `/workspace/${slug}/projects/${projectId}/issues`,
-      color: "text-orange-500",
+      description: "Visual collaboration",
     },
   ];
 
@@ -94,12 +89,6 @@ export default async function ProjectOverviewPage({
           )}
           <h2 className="text-2xl font-bold tracking-tight mb-6">Overview</h2>
         </div>
-        <Link href={`/workspace/${slug}/projects/${projectId}/settings`}>
-          <Button variant="outline">
-            <Settings className="mr-2 h-4 w-4" />
-            Project Settings
-          </Button>
-        </Link>
       </div>
 
       <Separator />
@@ -158,8 +147,7 @@ export default async function ProjectOverviewPage({
               <span className="text-sm font-semibold">
                 {items.boards.length +
                   items.documents.length +
-                  items.canvases.length +
-                  items.issues.length}
+                  items.canvases.length}
               </span>
             </div>
           </CardContent>
@@ -236,14 +224,14 @@ export default async function ProjectOverviewPage({
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Link href={`/workspace/${slug}/boards/new?projectId=${projectId}`}>
+            <Link href={`/workspace/${slug}/projects/${projectId}/boards/new`}>
               <Button variant="outline" className="w-full justify-start">
                 <CheckSquare className="mr-2 h-4 w-4" />
                 New Board
               </Button>
             </Link>
             <Link
-              href={`/workspace/${slug}/documents/new?projectId=${projectId}`}
+              href={`/workspace/${slug}/projects/${projectId}/documents/new`}
             >
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="mr-2 h-4 w-4" />

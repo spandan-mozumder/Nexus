@@ -2,11 +2,11 @@ import { protectRoute } from "@/lib/auth-guard";
 import { getProjectById } from "@/features/projects/actions";
 import { getProjectDocuments } from "@/features/documents/actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Calendar, Users, FolderOpen } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, FileText } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { DocumentCard } from "@/features/documents/components/document-card";
 
 async function ProjectDocumentsList({
   projectId,
@@ -44,44 +44,12 @@ async function ProjectDocumentsList({
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {documents.map((document) => (
-        <Link
+        <DocumentCard
           key={document.id}
-          href={`/workspace/${slug}/projects/${projectId}/documents/${document.id}`}
-        >
-          <Card className="hover:border-primary transition-colors cursor-pointer">
-            <CardHeader className="pb-3">
-              <div className="h-20 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold text-lg">
-                {document.icon ? (
-                  <span className="text-2xl">{document.icon}</span>
-                ) : (
-                  <FileText className="h-8 w-8" />
-                )}
-              </div>
-              <CardTitle className="text-base line-clamp-2">
-                {document.title || "Untitled"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <FolderOpen className="h-3 w-3" />
-                  <span>{document._count.children} pages</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>
-                    {new Date(document.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              {document.isPublished && (
-                <Badge variant="secondary" className="mt-2 text-xs">
-                  Published
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
+          document={document}
+          slug={slug}
+          projectId={projectId}
+        />
       ))}
     </div>
   );
@@ -118,7 +86,7 @@ export default async function ProjectDocumentsPage({
             Manage your project documents and notes
           </p>
         </div>
-        <Link href={`/workspace/${slug}/documents/new?projectId=${projectId}`}>
+        <Link href={`/workspace/${slug}/projects/${projectId}/documents/new`}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             New Document

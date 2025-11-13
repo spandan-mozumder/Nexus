@@ -254,7 +254,7 @@
   }
 }
 
-/* Additional utility classes for enhanced animations */
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -294,12 +294,12 @@
   }
 }
 
-/* Smooth scrolling */
+
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -318,7 +318,7 @@ html {
   background: hsl(var(--primary));
 }
 
-/* NProgress Customization */
+
 #nprogress {
   pointer-events: none;
 }

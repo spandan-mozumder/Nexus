@@ -11,9 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Plus, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, MoreVertical, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
-import Link from "next/link";
+import { deleteIssue, updateIssue } from "@/features/boards/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Issue {
   id: string;
@@ -29,11 +37,12 @@ interface Issue {
   } | null;
 }
 
-interface IssuesKanbanBoardProps {
+interface BoardIssuesKanbanProps {
   issues: Issue[];
-  projectId: string;
+  boardId: string;
   workspaceSlug: string;
-  onStatusChange: (issueId: string, newStatus: string) => Promise<void>;
+  projectId: string;
+  onCreateIssue: (status: string) => void;
 }
 
 const COLUMNS = [
@@ -44,14 +53,17 @@ const COLUMNS = [
   { id: "DONE", title: "Done", color: "bg-green-100" },
 ];
 
-export function IssuesKanbanBoard({
+export function BoardIssuesKanban({
   issues: initialIssues,
-  projectId,
+  boardId,
   workspaceSlug,
-  onStatusChange,
-}: IssuesKanbanBoardProps) {
+  projectId,
+  onCreateIssue,
+}: BoardIssuesKanbanProps) {
+  const router = useRouter();
   const [issues, setIssues] = useState(initialIssues);
   const [isDragging, setIsDragging] = useState(false);
+  const [deletingIssueId, setDeletingIssueId] = useState<string | null>(null);
 
   const onDragEnd = async (result: DropResult) => {
     setIsDragging(false);
@@ -76,10 +88,19 @@ export function IssuesKanbanBoard({
     );
 
     try {
-      await onStatusChange(issueId, newStatus);
+      const result = await updateIssue({
+        id: issueId,
+        status: newStatus as any,
+      });
+      
+      if (result.error) {
+        toast.error(result.error);
+        setIssues(initialIssues);
+      }
     } catch (error) {
       setIssues(initialIssues);
       console.error("Failed to update issue status:", error);
+      toast.error("Failed to update issue status");
     }
   };
 
@@ -104,16 +125,40 @@ export function IssuesKanbanBoard({
     }
   };
 
+  const handleDeleteIssue = async (issueId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingIssueId(issueId);
+    try {
+      const result = await deleteIssue({ id: issueId });
+      
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Issue deleted");
+        setIssues((prev) => prev.filter((issue) => issue.id !== issueId));
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error("Failed to delete issue");
+    } finally {
+      setDeletingIssueId(null);
+    }
+  };
+
   return (
     <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
-      <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)]">
+      <div className="flex gap-4 p-6 h-full overflow-auto">
         {COLUMNS.map((column) => {
           const columnIssues = getIssuesByStatus(column.id);
 
           return (
             <div key={column.id} className="flex-shrink-0 w-80">
-              <div className="flex flex-col h-full">
-                {}
+              <div className="flex flex-col">
                 <div className={`rounded-t-lg p-3 ${column.color}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -122,25 +167,26 @@ export function IssuesKanbanBoard({
                         {columnIssues.length}
                       </Badge>
                     </div>
-                    <Link
-                      href={`/workspace/${workspaceSlug}/projects/${projectId}/issues/new?status=${column.id}`}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      onClick={() => onCreateIssue(column.id)}
                     >
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
 
-                {}
                 <Droppable droppableId={column.id}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex-1 p-2 space-y-2 bg-muted/30 rounded-b-lg overflow-y-auto ${
+                      className={`p-2 space-y-2 bg-muted/30 rounded-b-lg overflow-y-auto ${
                         snapshot.isDraggingOver ? "bg-muted/50" : ""
                       }`}
+                      style={{ minHeight: "200px" }}
                     >
                       {columnIssues.map((issue, index) => (
                         <Draggable
@@ -162,13 +208,27 @@ export function IssuesKanbanBoard({
                                   <CardTitle className="text-sm font-medium line-clamp-2">
                                     {issue.title}
                                   </CardTitle>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 flex-shrink-0"
-                                  >
-                                    <MoreVertical className="h-3 w-3" />
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 flex-shrink-0"
+                                      >
+                                        <MoreVertical className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        onClick={(e) => handleDeleteIssue(issue.id, e)}
+                                        disabled={deletingIssueId === issue.id}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        {deletingIssueId === issue.id ? "Deleting..." : "Delete"}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </CardHeader>
                               <CardContent className="p-3 pt-0">

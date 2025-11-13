@@ -32,12 +32,16 @@ const formSchema = z.object({
 
 interface CreateCanvasModalProps {
   workspaceId: string;
+  workspaceSlug: string;
+  projectId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function CreateCanvasModal({
   workspaceId,
+  workspaceSlug,
+  projectId,
   open,
   onOpenChange,
 }: CreateCanvasModalProps) {
@@ -53,7 +57,7 @@ export function CreateCanvasModal({
 
   const mutation = useMutation({
     mutationFn: (data: z.infer<typeof formSchema>) =>
-      createCanvas({ ...data, workspaceId }),
+      createCanvas({ ...data, workspaceId, projectId }),
     onSuccess: (result) => {
       if (result.error) {
         toast.error(result.error);
@@ -64,7 +68,8 @@ export function CreateCanvasModal({
         form.reset();
 
         if (result.data) {
-          router.push(`/workspace/${workspaceId}/whiteboard/${result.data.id}`);
+          router.push(`/workspace/${workspaceSlug}/projects/${projectId}/whiteboards/${result.data.id}`);
+          router.refresh();
         }
       }
     },

@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -31,70 +29,78 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createIssue } from "../actions";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { createIssue } from "@/features/boards/actions";
 
-const formSchema = z.object({
+const issueSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
-  type: z.enum(["TASK", "BUG", "STORY", "EPIC", "FEATURE"]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   description: z.string().optional(),
-  assigneeId: z.string().optional(),
-  sprintId: z.string().optional(),
+  type: z.enum(["TASK", "BUG", "STORY", "EPIC", "FEATURE"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]),
+  status: z.enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]),
 });
 
-interface CreateIssueModalProps {
-  projectId: string;
-  sprintId?: string;
+interface CreateIssueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  boardId: string;
+  defaultStatus?: string;
 }
 
-export function CreateIssueModal({
-  projectId,
-  sprintId,
+export function CreateIssueDialog({
   open,
   onOpenChange,
-}: CreateIssueModalProps) {
-  const queryClient = useQueryClient();
+  boardId,
+  defaultStatus = "BACKLOG",
+}: CreateIssueDialogProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof issueSchema>>({
+    resolver: zodResolver(issueSchema),
     defaultValues: {
       title: "",
+      description: "",
       type: "TASK",
       priority: "MEDIUM",
-      description: "",
-      sprintId: sprintId,
+      status: defaultStatus as any,
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: (data: z.infer<typeof formSchema>) =>
-      createIssue({ ...data, projectId }),
-    onSuccess: (result) => {
+  const onSubmit = async (values: z.infer<typeof issueSchema>) => {
+    setIsLoading(true);
+    try {
+      const result = await createIssue({
+        ...values,
+        boardId,
+      });
+
       if (result.error) {
         toast.error(result.error);
       } else {
         toast.success("Issue created successfully");
-        queryClient.invalidateQueries({ queryKey: ["project", projectId] });
-        onOpenChange(false);
         form.reset();
+        onOpenChange(false);
+        router.refresh();
       }
-    },
-  });
-
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    mutation.mutate(data);
-  }
+    } catch (error) {
+      toast.error("Failed to create issue");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Create New Issue</DialogTitle>
-          <DialogDescription>Add a new issue to track work</DialogDescription>
+          <DialogDescription>
+            Add a new issue to track work on this board
+          </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -104,7 +110,25 @@ export function CreateIssueModal({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Issue title" />
+                    <Input placeholder="Issue title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the issue..."
+                      rows={4}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,8 +155,8 @@ export function CreateIssueModal({
                         <SelectItem value="TASK">Task</SelectItem>
                         <SelectItem value="BUG">Bug</SelectItem>
                         <SelectItem value="STORY">Story</SelectItem>
-                        <SelectItem value="FEATURE">Feature</SelectItem>
                         <SelectItem value="EPIC">Epic</SelectItem>
+                        <SelectItem value="FEATURE">Feature</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -170,35 +194,43 @@ export function CreateIssueModal({
 
             <FormField
               control={form.control}
-              name="description"
+              name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Describe the issue..."
-                      rows={4}
-                    />
-                  </FormControl>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="BACKLOG">Backlog</SelectItem>
+                      <SelectItem value="TODO">To Do</SelectItem>
+                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                      <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                      <SelectItem value="DONE">Done</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Create Issue
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Issue"}
               </Button>
             </div>
           </form>

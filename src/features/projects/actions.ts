@@ -27,6 +27,9 @@ const createIssueSchema = z.object({
   projectId: z.string(),
   type: z.enum(["TASK", "BUG", "STORY", "EPIC", "FEATURE"]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  status: z
+    .enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"])
+    .optional(),
   description: z.string().optional(),
   assigneeId: z.string().optional(),
   sprintId: z.string().optional(),
@@ -480,7 +483,7 @@ export async function createIssue(data: z.infer<typeof createIssueSchema>) {
         projectId: validatedData.projectId,
         type: validatedData.type,
         priority: validatedData.priority || "MEDIUM",
-        status: "TODO",
+        status: validatedData.status || "TODO",
         reporterId: session.user.id,
         assigneeId: validatedData.assigneeId,
         sprintId: validatedData.sprintId,

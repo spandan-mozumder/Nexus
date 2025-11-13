@@ -114,6 +114,13 @@ export function Editor({
     }
   }, [editor, content]);
 
+  // Update editor editable state when prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(editable);
+    }
+  }, [editor, editable]);
+
   const setLink = useCallback(() => {
     if (!editor) return;
 

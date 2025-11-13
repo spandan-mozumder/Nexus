@@ -106,7 +106,7 @@ export async function createCanvas(data: z.infer<typeof createCanvasSchema>) {
       },
     });
 
-    revalidatePath(`/workspace/${validatedData.workspaceId}/whiteboard`);
+    revalidatePath(`/workspace/${validatedData.workspaceId}/projects/${projectId}/whiteboards`);
 
     return { success: true, data: canvas };
   } catch (error) {
@@ -150,9 +150,9 @@ export async function updateCanvas(data: z.infer<typeof updateCanvasSchema>) {
       data: updateData,
     });
 
-    revalidatePath(`/workspace/${canvas.workspaceId}/whiteboard`);
+    revalidatePath(`/workspace/${canvas.workspaceId}/projects/${canvas.projectId}/whiteboards`);
     revalidatePath(
-      `/workspace/${canvas.workspaceId}/whiteboard/${validatedData.id}`,
+      `/workspace/${canvas.workspaceId}/projects/${canvas.projectId}/whiteboards/${validatedData.id}`,
     );
 
     return { success: true, data: updatedCanvas };
@@ -200,7 +200,7 @@ export async function deleteCanvas(data: z.infer<typeof idSchema>) {
       where: { id: validatedData.id },
     });
 
-    revalidatePath(`/workspace/${canvas.workspaceId}/whiteboard`);
+    revalidatePath(`/workspace/${canvas.workspaceId}/projects/${canvas.projectId}/whiteboards`);
 
     return { success: true };
   } catch (error) {

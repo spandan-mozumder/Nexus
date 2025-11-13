@@ -1,5 +1,6 @@
 import { protectRoute } from "@/lib/auth-guard";
-import { getBoardById } from "@/features/boards/actions";
+import { getBoardById, getBoardIssues } from "@/features/boards/actions";
+import { BoardDetailClient } from "@/features/boards/components/board-detail-client";
 
 interface BoardPageProps {
   params: Promise<{
@@ -13,9 +14,12 @@ export default async function BoardPage({ params }: BoardPageProps) {
   await protectRoute();
 
   const { slug, projectId, boardId } = await params;
-  const result = await getBoardById(boardId);
+  const [boardResult, issuesResult] = await Promise.all([
+    getBoardById(boardId),
+    getBoardIssues(boardId),
+  ]);
 
-  if (result.error || !result.data) {
+  if (boardResult.error || !boardResult.data) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-muted-foreground">Board not found</p>
@@ -23,17 +27,16 @@ export default async function BoardPage({ params }: BoardPageProps) {
     );
   }
 
-  const board = result.data;
+  const board = boardResult.data;
+  const issues = issuesResult.success ? issuesResult.data : [];
 
   return (
-    <div className="flex-1 h-full">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold">{board.title}</h1>
-        {board.description && (
-          <p className="text-muted-foreground mt-2">{board.description}</p>
-        )}
-      </div>
-      {}
-    </div>
+    <BoardDetailClient
+      board={board}
+      issues={issues}
+      boardId={boardId}
+      workspaceSlug={slug}
+      projectId={projectId}
+    />
   );
 }

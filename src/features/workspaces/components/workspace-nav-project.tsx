@@ -30,7 +30,6 @@ interface Project {
     boards: number;
     documents: number;
     canvases: number;
-    issues: number;
   };
   members: {
     role: string;

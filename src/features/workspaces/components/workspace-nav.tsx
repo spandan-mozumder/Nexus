@@ -38,11 +38,7 @@ interface WorkspaceNavProps {
 const navigation = [
   { name: "Overview", href: "", icon: LayoutDashboard },
   { name: "Projects", href: "/projects", icon: FolderKanban },
-  { name: "Tasks", href: "/tasks", icon: CheckSquare },
-  { name: "Boards", href: "/boards", icon: LayoutDashboard },
-  { name: "Documents", href: "/documents", icon: FileText },
   { name: "Messages", href: "/messages", icon: MessageSquare },
-  { name: "Whiteboard", href: "/whiteboard", icon: Palette },
 ];
 
 export function WorkspaceNav({ workspace, user }: WorkspaceNavProps) {

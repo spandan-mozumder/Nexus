@@ -119,7 +119,11 @@ export async function createBoard(data: z.infer<typeof createBoardSchema>) {
       },
     });
 
-    revalidatePath(`/workspace/${validatedData.workspaceId}/boards`);
+    if (projectId) {
+      revalidatePath(`/workspace/${validatedData.workspaceId}/projects/${projectId}/boards`);
+    } else {
+      revalidatePath(`/workspace/${validatedData.workspaceId}/projects`);
+    }
 
     return { success: true, data: board };
   } catch (error) {
@@ -163,10 +167,12 @@ export async function updateBoard(data: z.infer<typeof updateBoardSchema>) {
       data: updateData,
     });
 
-    revalidatePath(`/workspace/${board.workspaceId}/boards`);
-    revalidatePath(
-      `/workspace/${board.workspaceId}/boards/${validatedData.id}`,
-    );
+    if (board.projectId) {
+      revalidatePath(`/workspace/${board.workspaceId}/projects/${board.projectId}/boards`);
+      revalidatePath(`/workspace/${board.workspaceId}/projects/${board.projectId}/boards/${validatedData.id}`);
+    } else {
+      revalidatePath(`/workspace/${board.workspaceId}/projects`);
+    }
 
     return { success: true, data: updatedBoard };
   } catch (error) {
@@ -224,7 +230,11 @@ export async function deleteBoard(data: z.infer<typeof idSchema>) {
       },
     });
 
-    revalidatePath(`/workspace/${board.workspaceId}/boards`);
+    if (board.projectId) {
+      revalidatePath(`/workspace/${board.workspaceId}/projects/${board.projectId}/boards`);
+    } else {
+      revalidatePath(`/workspace/${board.workspaceId}/projects`);
+    }
 
     return { success: true };
   } catch (error) {
@@ -319,6 +329,7 @@ export async function getProjectBoards(projectId: string) {
         _count: {
           select: {
             lists: true,
+            issues: true,
           },
         },
       },
@@ -766,5 +777,279 @@ export async function moveCard(data: {
   } catch (error) {
     console.error("Error moving card:", error);
     return { error: "Failed to move card" };
+  }
+}
+
+// ============================================
+// ISSUE MANAGEMENT (within Boards)
+// ============================================
+
+const createIssueSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  boardId: z.string(),
+  type: z.enum(["TASK", "BUG", "STORY", "EPIC", "FEATURE"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  status: z
+    .enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"])
+    .optional(),
+  description: z.string().optional(),
+  assigneeId: z.string().optional(),
+  sprintId: z.string().optional(),
+});
+
+const updateIssueSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1).max(255).optional(),
+  description: z.string().optional(),
+  status: z
+    .enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"])
+    .optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  type: z.enum(["TASK", "BUG", "STORY", "EPIC", "FEATURE"]).optional(),
+  assigneeId: z.string().optional(),
+  sprintId: z.string().optional(),
+  dueDate: z.string().optional(),
+});
+
+export async function getBoardIssues(boardId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "Unauthorized", data: [] };
+    }
+
+    const board = await db.board.findFirst({
+      where: { id: boardId },
+      include: {
+        workspace: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
+    });
+
+    if (!board || board.workspace.members.length === 0) {
+      return { error: "Board not found or access denied", data: [] };
+    }
+
+    const issues = await db.issue.findMany({
+      where: { boardId },
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: [{ status: "asc" }, { position: "asc" }],
+    });
+
+    return { success: true, data: issues };
+  } catch (error) {
+    console.error("Error getting board issues:", error);
+    return { error: "Failed to get issues", data: [] };
+  }
+}
+
+export async function createIssue(data: z.infer<typeof createIssueSchema>) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "Unauthorized" };
+    }
+
+    const validatedData = createIssueSchema.parse(data);
+
+    const board = await db.board.findFirst({
+      where: { id: validatedData.boardId },
+      include: {
+        workspace: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+      },
+    });
+
+    if (!board || board.workspace.members.length === 0) {
+      return { error: "Board not found or access denied" };
+    }
+
+    const maxPosition = await db.issue.findFirst({
+      where: { boardId: validatedData.boardId },
+      orderBy: { position: "desc" },
+      select: { position: true },
+    });
+
+    const issue = await db.issue.create({
+      data: {
+        title: validatedData.title,
+        description: validatedData.description,
+        type: validatedData.type,
+        priority: validatedData.priority || "MEDIUM",
+        status: validatedData.status || "BACKLOG",
+        assigneeId: validatedData.assigneeId,
+        sprintId: validatedData.sprintId,
+        boardId: validatedData.boardId,
+        projectId: board.projectId,
+        workspaceId: board.workspaceId,
+        reporterId: session.user.id,
+        position: (maxPosition?.position || 0) + 1,
+      },
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    await db.activityLog.create({
+      data: {
+        workspaceId: board.workspaceId,
+        userId: session.user.id,
+        action: "CREATED",
+        entityType: "ISSUE",
+        entityId: issue.id,
+        metadata: { message: `Created issue "${issue.title}"` },
+      },
+    });
+
+    revalidatePath(`/workspace/${board.workspaceId}/projects/${board.projectId}/boards/${validatedData.boardId}`);
+
+    return { success: true, data: issue };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    console.error("Error creating issue:", error);
+    return { error: "Failed to create issue" };
+  }
+}
+
+export async function updateIssue(data: z.infer<typeof updateIssueSchema>) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "Unauthorized" };
+    }
+
+    const validatedData = updateIssueSchema.parse(data);
+
+    const issue = await db.issue.findFirst({
+      where: { id: validatedData.id },
+      include: {
+        board: {
+          include: {
+            workspace: {
+              include: {
+                members: {
+                  where: { userId: session.user.id },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!issue || !issue.board || issue.board.workspace.members.length === 0) {
+      return { error: "Issue not found or access denied" };
+    }
+
+    const { id, ...updateData } = validatedData;
+    const updatedIssue = await db.issue.update({
+      where: { id: validatedData.id },
+      data: {
+        ...updateData,
+        dueDate: updateData.dueDate ? new Date(updateData.dueDate) : undefined,
+      },
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath(`/workspace/${issue.board.workspaceId}/projects/${issue.board.projectId}/boards/${issue.boardId}`);
+
+    return { success: true, data: updatedIssue };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    console.error("Error updating issue:", error);
+    return { error: "Failed to update issue" };
+  }
+}
+
+export async function deleteIssue(data: z.infer<typeof idSchema>) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "Unauthorized" };
+    }
+
+    const validatedData = idSchema.parse(data);
+
+    const issue = await db.issue.findFirst({
+      where: { id: validatedData.id },
+      include: {
+        board: {
+          include: {
+            workspace: {
+              include: {
+                members: {
+                  where: { userId: session.user.id },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!issue || !issue.board || issue.board.workspace.members.length === 0) {
+      return { error: "Issue not found or access denied" };
+    }
+
+    await db.issue.delete({
+      where: { id: validatedData.id },
+    });
+
+    await db.activityLog.create({
+      data: {
+        workspaceId: issue.board.workspaceId,
+        userId: session.user.id,
+        action: "DELETED",
+        entityType: "ISSUE",
+        entityId: issue.id,
+        metadata: { message: `Deleted issue "${issue.title}"` },
+      },
+    });
+
+    revalidatePath(`/workspace/${issue.board.workspaceId}/projects/${issue.board.projectId}/boards/${issue.boardId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting issue:", error);
+    return { error: "Failed to delete issue" };
   }
 }
