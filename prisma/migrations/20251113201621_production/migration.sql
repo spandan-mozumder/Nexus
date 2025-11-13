@@ -128,6 +128,7 @@ CREATE TABLE "issues" (
     "id" TEXT NOT NULL,
     "workspaceId" TEXT NOT NULL,
     "projectId" TEXT NOT NULL,
+    "boardId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "status" "IssueStatus" NOT NULL DEFAULT 'BACKLOG',
@@ -465,6 +466,9 @@ CREATE INDEX "issues_workspaceId_idx" ON "issues"("workspaceId");
 CREATE INDEX "issues_projectId_idx" ON "issues"("projectId");
 
 -- CreateIndex
+CREATE INDEX "issues_boardId_idx" ON "issues"("boardId");
+
+-- CreateIndex
 CREATE INDEX "issues_assigneeId_idx" ON "issues"("assigneeId");
 
 -- CreateIndex
@@ -685,6 +689,9 @@ ALTER TABLE "issues" ADD CONSTRAINT "issues_workspaceId_fkey" FOREIGN KEY ("work
 
 -- AddForeignKey
 ALTER TABLE "issues" ADD CONSTRAINT "issues_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "issues" ADD CONSTRAINT "issues_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "issues" ADD CONSTRAINT "issues_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
