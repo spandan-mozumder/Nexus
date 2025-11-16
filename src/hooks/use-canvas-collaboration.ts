@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { CanvasCollaborationManager, UserPresence } from "@/lib/collaboration";
+import { getWebSocketUrl } from "@/lib/get-base-url";
 
 export interface UseCanvasCollaborationOptions {
   canvasId: string;
@@ -45,8 +46,7 @@ export function useCanvasCollaboration({
           setError(err);
         });
 
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const serverUrl = `${protocol}//${window.location.host}`;
+        const serverUrl = getWebSocketUrl();
         await managerRef.current.connect(serverUrl);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
