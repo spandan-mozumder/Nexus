@@ -39,18 +39,23 @@ export async function signUpAction(values: z.infer<typeof signUpSchema>) {
       },
     });
 
-    await signIn("credentials", {
-      email: validatedFields.email,
-      password: validatedFields.password,
-      redirect: false,
-    });
+    try {
+      await signIn("credentials", {
+        email: validatedFields.email,
+        password: validatedFields.password,
+        redirect: false,
+      });
+    } catch (signInError) {
+      console.error("Auto sign-in after signup failed:", signInError);
+    }
 
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { error: error.issues[0].message };
     }
-    return { error: "Something went wrong" };
+    console.error("Sign up error:", error);
+    return { error: "Something went wrong during sign up" };
   }
 }
 
@@ -58,23 +63,32 @@ export async function signInAction(values: z.infer<typeof signInSchema>) {
   try {
     const validatedFields = signInSchema.parse(values);
 
-    await signIn("credentials", {
-      email: validatedFields.email,
-      password: validatedFields.password,
-      redirectTo: "/dashboard",
-    });
-
-    return { success: true };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid credentials" };
-        default:
-          return { error: "Something went wrong" };
+    try {
+      await signIn("credentials", {
+        email: validatedFields.email,
+        password: validatedFields.password,
+        redirect: false,
+      });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof AuthError) {
+        switch (error.type) {
+          case "CredentialsSignin":
+            return { error: "Invalid email or password" };
+          case "AccessDenied":
+            return { error: "Access denied" };
+          default:
+            return { error: "Authentication failed. Please try again." };
+        }
       }
+      return { error: "Authentication failed. Please try again." };
     }
-    throw error;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0].message };
+    }
+    console.error("Sign in error:", error);
+    return { error: "Something went wrong" };
   }
 }
 

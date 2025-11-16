@@ -67,13 +67,17 @@ export default function SignUpPage() {
 
       if (result?.error) {
         setError(result.error);
-      } else {
+        setIsLoading(false);
+      } else if (result?.success) {
         router.push("/dashboard");
         router.refresh();
+      } else {
+        setError("Sign up failed. Please try again.");
+        setIsLoading(false);
       }
     } catch (error) {
+      console.error("Sign up error:", error);
       setError("Something went wrong. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   }

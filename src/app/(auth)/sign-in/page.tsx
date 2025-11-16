@@ -54,13 +54,17 @@ export default function SignInPage() {
 
       if (result?.error) {
         setError(result.error);
-      } else {
+        setIsLoading(false);
+      } else if (result?.success) {
         router.push("/dashboard");
         router.refresh();
+      } else {
+        setError("Sign in failed. Please try again.");
+        setIsLoading(false);
       }
     } catch (error) {
+      console.error("Sign in error:", error);
       setError("Something went wrong. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   }
